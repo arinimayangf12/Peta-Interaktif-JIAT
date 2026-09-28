@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebGIS Persebaran JIAT</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIINfQ3FqD1Lx8c7e2b4J0j9X6v7X3M6xQ="
+    crossorigin=""
+  />
+
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: Arial, sans-serif; }
+
+    .header {
+      height: 64px;
+      background: #0b5d4b;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.2);
+      position: relative;
+      z-index: 1000;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 21px;
+      font-weight: 700;
+    }
+
+    .header span {
+      margin-left: 12px;
+      font-size: 13px;
+      opacity: .85;
+    }
+
+    #map {
+      height: calc(100vh - 64px);
+      width: 100%;
+    }
+
+    .info-panel {
+      position: absolute;
+      top: 82px;
+      left: 15px;
+      z-index: 900;
+      width: 285px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.18);
+      line-height: 1.45;
+    }
+
+    .info-panel h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: #0b5d4b;
+    }
+
+    .info-panel p {
+      margin: 5px 0;
+      font-size: 13px;
+    }
+
+    .legend {
+      background: white;
+      padding: 10px 12px;
+      line-height: 22px;
+      border-radius: 7px;
+      box-shadow: 0 1px 8px rgba(0,0,0,.18);
+      font-size: 12px;
+    }
+
+    .legend i {
+      width: 16px;
+      height: 16px;
+      float: left;
+      margin-right: 7px;
+      opacity: .8;
+      border: 1px solid #555;
+    }
+
+    .legend .point {
+      border-radius: 50%;
+      width: 13px;
+      height: 13px;
+      margin-top: 4px;
+    }
+
+    .leaflet-control-layers {
+      border-radius: 8px !important;
+    }
+
+    @media (max-width: 600px) {
+      .header h1 { font-size: 16px; }
+      .header span { display: none; }
+      .info-panel { width: 235px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>WebGIS Persebaran JIAT</h1>
+    <span>Direktorat Air Tanah dan Air Baku</span>
+  </div>
+
+  <div class="info-panel">
+    <h2>Informasi WebGIS</h2>
+    <p><b>JIAT</b> — Jaringan Irigasi Air Tanah</p>
+    <p>WebGIS ini merupakan contoh sederhana untuk menampilkan persebaran titik JIAT dan data pendukung seperti CAT serta batas administrasi.</p>
+    <p><b>Petunjuk:</b> klik titik JIAT untuk melihat informasi.</p>
+  </div>
+
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="">
+  </script>
+
+  <script>
+    // ==========================
+    // 1. INISIALISASI PETA
+    // ==========================
+    const map = L.map('map').setView([-2.5, 118], 5);
+
+    // Basemap OpenStreetMap
+    const osm = L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {
+        attribution: '&copy; OpenStreetMap contributors'
+      }
+    ).addTo(map);
+
+    // Basemap Satellite
+    const satellite = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: 'Tiles &copy; Esri'
+      }
+    );
+
+    // ==========================
+    // 2. LAYER JIAT
+    // ==========================
+    const jiatLayer = L.layerGroup();
+
+    const dataJIAT = [
+      {
+        nama: "JIAT Contoh 01",
+        provinsi: "Nusa Tenggara Timur",
+        kabupaten: "Kabupaten Kupang",
+        debit: "10 L/detik",
+        lat: -10.170,
+        lng: 123.607
+      },
+      {
+        nama: "JIAT Contoh 02",
+        provinsi: "Jawa Tengah",
+        kabupaten: "Kabupaten Kebumen",
+        debit: "3 L/detik",
+        lat: -7.675,
+        lng: 109.650
+      },
+      {
+        nama: "JIAT Contoh 03",
+        provinsi: "Jawa Timur",
+        kabupaten: "Kabupaten Madiun",
+        debit: "5 L/detik",
+        lat: -7.630,
+        lng: 111.530
+      },
+      {
+        nama: "JIAT Contoh 04",
+        provinsi: "Nusa Tenggara Barat",
+        kabupaten: "Kabupaten Lombok Tengah",
+        debit: "8 L/detik",
+        lat: -8.700,
+        lng: 116.300
+      }
+    ];
+
+    dataJIAT.forEach(function(item) {
+      const marker = L.circleMarker([item.lat, item.lng], {
+        radius: 8,
+        fillColor: '#e53935',
+        color: '#ffffff',
+        weight: 2,
+        fillOpacity: 0.9
+      });
+
+      marker.bindPopup(`
+        <div style="min-width:190px">
+          <h3 style="margin:0 0 8px;color:#0b5d4b">${item.nama}</h3>
+          <b>Provinsi:</b> ${item.provinsi}<br>
+          <b>Kabupaten:</b> ${item.kabupaten}<br>
+          <b>Debit:</b> ${item.debit}<br>
+          <b>Koordinat:</b> ${item.lat}, ${item.lng}
+        </div>
+      `);
+
+      marker.addTo(jiatLayer);
+    });
+
+    jiatLayer.addTo(map);
+
+    // ==========================
+    // 3. CONTOH LAYER CAT
+    // ==========================
+    const catLayer = L.layerGroup();
+
+    // Contoh polygon CAT.
+    // Data ini hanya ilustrasi dan bukan batas CAT resmi.
+    const cat01 = L.polygon([
+      [-7.45, 109.40],
+      [-7.45, 109.85],
+      [-7.80, 109.85],
+      [-7.80, 109.40]
+    ], {
+      color: '#1565c0',
+      weight: 2,
+      fillColor: '#42a5f5',
+      fillOpacity: 0.25
+    });
+
+    cat01.bindPopup(`
+      <b>CAT Contoh Kebumen</b><br>
+      <small>Polygon ilustrasi untuk contoh WebGIS.</small>
+    `);
+
+    cat01.addTo(catLayer);
+
+    // ==========================
+    // 4. CONTOH BATAS KABUPATEN
+    // ==========================
+    const batasKabupaten = L.layerGroup();
+
+    const batasContoh = L.polygon([
+      [-7.55, 109.55],
+      [-7.55, 109.75],
+      [-7.75, 109.75],
+      [-7.75, 109.55]
+    ], {
+      color: '#8e24aa',
+      weight: 2,
+      fillColor: '#ce93d8',
+      fillOpacity: 0.15
+    });
+
+    batasContoh.bindPopup(`
+      <b>Kabupaten Contoh</b><br>
+      Batas administrasi ilustrasi.
+    `);
+
+    batasContoh.addTo(batasKabupaten);
+
+    // ==========================
+    // 5. KONTROL LAYER
+    // ==========================
+    const baseMaps = {
+      "OpenStreetMap": osm,
+      "Satellite": satellite
+    };
+
+    const overlayMaps = {
+      "Titik JIAT": jiatLayer,
+      "CAT": catLayer,
+      "Batas Kabupaten": batasKabupaten
+    };
+
+    L.control.layers(baseMaps, overlayMaps, {
+      collapsed: false
+    }).addTo(map);
+
+    // ==========================
+    // 6. LEGENDA
+    // ==========================
+    const legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = function() {
+      const div = L.DomUtil.create('div', 'legend');
+
+      div.innerHTML += '<b>Legenda</b><br>';
+      div.innerHTML += '<i class="point" style="background:#e53935"></i> Titik JIAT<br>';
+      div.innerHTML += '<i style="background:#42a5f5"></i> CAT<br>';
+      div.innerHTML += '<i style="background:#ce93d8"></i> Batas Kabupaten';
+
+      return div;
+    };
+
+    legend.addTo(map);
+
+    // ==========================
+    // 7. SKALA
+    // ==========================
+    L.control.scale({
+      imperial: false,
+      metric: true
+    }).addTo(map);
+  </script>
+</body>
+</html>
