@@ -1,448 +1,1038 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>WebGIS Persebaran JIAT</title>
 
-  <!-- Leaflet -->
+
+  <!-- =====================================================
+       LEAFLET CSS
+  ====================================================== -->
+
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     crossorigin=""
   >
 
+
+  <!-- =====================================================
+       STYLE
+  ====================================================== -->
+
   <style>
+
     * {
       box-sizing: border-box;
     }
 
-    html, body {
+
+    html,
+    body {
+
       margin: 0;
       padding: 0;
+
       height: 100%;
-      font-family: Arial, Helvetica, sans-serif;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
       background: #f4f6f8;
+
     }
 
+
+    /* =====================================================
+       HEADER
+    ====================================================== */
+
+    .header {
+
+      position: fixed;
+
+      top: 0;
+      left: 0;
+      right: 0;
+
+      height: 64px;
+
+      z-index: 2000;
+
+      display: flex;
+
+      align-items: center;
+
+      padding: 0 22px;
+
+      background: #087f5b;
+
+      color: white;
+
+      box-shadow:
+        0 2px 8px rgba(0,0,0,.25);
+
+    }
+
+
+    .header-title {
+
+      font-size: 20px;
+
+      font-weight: bold;
+
+      margin: 0;
+
+    }
+
+
+    .header-subtitle {
+
+      font-size: 13px;
+
+      margin-left: 14px;
+
+      opacity: .9;
+
+    }
+
+
+    /* =====================================================
+       MAP
+    ====================================================== */
+
     #map {
+
       position: absolute;
+
       top: 64px;
       bottom: 0;
       left: 0;
       right: 0;
+
     }
 
-    /* ================= HEADER ================= */
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 64px;
-      z-index: 2000;
-      display: flex;
-      align-items: center;
-      padding: 0 22px;
-      background: #087f5b;
-      color: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,.22);
-    }
 
-    .header-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin: 0;
-    }
+    /* =====================================================
+       SIDE PANEL
+    ====================================================== */
 
-    .header-subtitle {
-      font-size: 13px;
-      margin-left: 14px;
-      opacity: .9;
-    }
-
-    /* ================= SIDE PANEL ================= */
     .side-panel {
+
       position: fixed;
+
       z-index: 1500;
-      top: 82px;
+
+      top: 80px;
+
       left: 15px;
+
       width: 330px;
-      max-height: calc(100vh - 100px);
+
+      max-height:
+        calc(100vh - 100px);
+
       overflow-y: auto;
-      background: rgba(255,255,255,.97);
+
+      background:
+        rgba(255,255,255,.97);
+
       border-radius: 12px;
-      box-shadow: 0 3px 18px rgba(0,0,0,.20);
+
+      box-shadow:
+        0 3px 18px rgba(0,0,0,.20);
+
       padding: 16px;
+
     }
+
 
     .side-panel h2 {
+
       margin: 0 0 4px;
+
       color: #087f5b;
+
       font-size: 18px;
+
     }
 
-    .side-panel .description {
+
+    .description {
+
       color: #666;
+
       font-size: 12px;
+
       line-height: 1.5;
+
       margin-bottom: 14px;
+
     }
 
-    /* ================= STATISTICS ================= */
+
+    /* =====================================================
+       STATISTICS
+    ====================================================== */
+
     .stats {
+
       display: grid;
-      grid-template-columns: 1fr 1fr;
+
+      grid-template-columns:
+        1fr 1fr;
+
       gap: 8px;
+
       margin-bottom: 14px;
+
     }
+
 
     .stat {
+
       background: #f0f7f4;
+
       border-radius: 8px;
+
       padding: 10px;
-      border-left: 4px solid #087f5b;
+
+      border-left:
+        4px solid #087f5b;
+
     }
+
 
     .stat-number {
+
       font-size: 20px;
+
       font-weight: bold;
+
       color: #087f5b;
+
     }
+
 
     .stat-label {
+
       font-size: 11px;
+
       color: #666;
+
       margin-top: 2px;
+
     }
 
-    /* ================= SEARCH ================= */
+
+    /* =====================================================
+       SEARCH
+    ====================================================== */
+
     .search-box {
-      margin-bottom: 12px;
+
+      margin-bottom: 10px;
+
     }
 
-    .search-box input,
-    .filter select {
+
+    .search-box input {
+
       width: 100%;
-      padding: 9px 10px;
-      border: 1px solid #ccc;
+
+      padding: 10px;
+
+      border:
+        1px solid #ccc;
+
       border-radius: 7px;
+
       font-size: 13px;
+
       outline: none;
-      background: white;
+
     }
 
-    .search-box input:focus,
-    .filter select:focus {
-      border-color: #087f5b;
+
+    .search-box input:focus {
+
+      border-color:
+        #087f5b;
+
     }
+
+
+    /* =====================================================
+       FILTER
+    ====================================================== */
 
     .filter {
+
       margin-bottom: 9px;
+
     }
+
 
     .filter label {
+
       display: block;
+
       font-size: 12px;
+
       font-weight: bold;
+
       margin-bottom: 4px;
+
       color: #444;
+
     }
+
+
+    .filter select {
+
+      width: 100%;
+
+      padding: 9px;
+
+      border:
+        1px solid #ccc;
+
+      border-radius: 7px;
+
+      background: white;
+
+      font-size: 13px;
+
+    }
+
+
+    /* =====================================================
+       BUTTON
+    ====================================================== */
 
     .button-row {
+
       display: flex;
+
       gap: 7px;
+
       margin: 12px 0;
+
     }
+
 
     button {
-      border: 0;
+
+      border: none;
+
       border-radius: 7px;
-      padding: 9px 11px;
+
+      padding: 9px 12px;
+
       cursor: pointer;
+
       font-size: 12px;
+
     }
+
 
     .btn-primary {
-      background: #087f5b;
+
+      background:
+        #087f5b;
+
       color: white;
+
     }
+
 
     .btn-secondary {
-      background: #e9ecef;
+
+      background:
+        #e9ecef;
+
       color: #333;
+
     }
+
 
     button:hover {
-      opacity: .88;
+
+      opacity: .85;
+
     }
 
-    /* ================= LEGEND ================= */
+
+    /* =====================================================
+       LEGEND
+    ====================================================== */
+
     .legend-box {
-      border-top: 1px solid #ddd;
+
+      border-top:
+        1px solid #ddd;
+
       padding-top: 12px;
+
       margin-top: 8px;
+
     }
+
 
     .legend-box h3 {
-      margin: 0 0 8px;
+
+      margin:
+        0 0 8px;
+
       font-size: 13px;
+
     }
+
 
     .legend-item {
+
       display: flex;
+
       align-items: center;
+
       gap: 8px;
+
       font-size: 12px;
-      margin: 6px 0;
+
+      margin: 7px 0;
+
     }
 
-    .legend-symbol {
+
+    .legend-point {
+
       width: 15px;
+
       height: 15px;
+
       border-radius: 50%;
+
       background: #e53935;
-      border: 2px solid white;
-      box-shadow: 0 0 0 1px #777;
+
+      border:
+        2px solid white;
+
+      box-shadow:
+        0 0 0 1px #777;
+
     }
 
-    /* ================= LOADING ================= */
-    .loading {
-      font-size: 12px;
-      color: #666;
-      padding: 7px 0;
+
+    .legend-cat {
+
+      width: 17px;
+
+      height: 15px;
+
+      background:
+        #42a5f5;
+
+      border:
+        2px solid #1565c0;
+
+      opacity: .7;
+
     }
+
+
+    /* =====================================================
+       LOADING
+    ====================================================== */
+
+    .loading {
+
+      font-size: 12px;
+
+      color: #666;
+
+      padding: 5px 0;
+
+    }
+
 
     .error {
-      color: #c92a2a;
-      background: #fff5f5;
-      border-radius: 7px;
-      padding: 9px;
-      font-size: 12px;
+
       display: none;
+
+      color: #c92a2a;
+
+      background:
+        #fff5f5;
+
+      border-radius: 7px;
+
+      padding: 9px;
+
+      font-size: 12px;
+
+      margin-top: 8px;
+
     }
 
-    /* ================= POPUP ================= */
+
+    /* =====================================================
+       POPUP
+    ====================================================== */
+
     .popup-title {
-      color: #087f5b;
+
+      color:
+        #087f5b;
+
       font-size: 16px;
+
       font-weight: bold;
+
       margin-bottom: 8px;
+
     }
+
+
+    .popup-subtitle {
+
+      font-size: 12px;
+
+      color: #777;
+
+      margin-bottom: 8px;
+
+    }
+
 
     .popup-table {
-      border-collapse: collapse;
+
+      border-collapse:
+        collapse;
+
       width: 100%;
+
       font-size: 12px;
+
     }
+
 
     .popup-table td {
-      padding: 4px 5px;
-      border-bottom: 1px solid #eee;
-      vertical-align: top;
+
+      padding: 5px;
+
+      border-bottom:
+        1px solid #eee;
+
+      vertical-align:
+        top;
+
     }
+
 
     .popup-table td:first-child {
+
       font-weight: bold;
+
       color: #555;
+
       width: 42%;
+
     }
 
-    /* ================= MOBILE ================= */
+
+    /* =====================================================
+       MOBILE
+    ====================================================== */
+
     @media (max-width: 700px) {
+
       .header {
+
         height: 55px;
-        padding: 0 14px;
+
+        padding:
+          0 14px;
+
       }
+
 
       .header-title {
+
         font-size: 16px;
+
       }
+
 
       .header-subtitle {
+
         display: none;
+
       }
+
 
       #map {
+
         top: 55px;
+
       }
 
+
       .side-panel {
+
         top: 68px;
+
         left: 10px;
-        width: 280px;
-        max-height: 65vh;
+
+        width: 285px;
+
+        max-height:
+          65vh;
+
       }
+
     }
+
   </style>
+
 </head>
+
 
 <body>
 
-  <!-- ================= HEADER ================= -->
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
   <div class="header">
-    <div class="header-title">WebGIS Persebaran JIAT</div>
-    <div class="header-subtitle">
-      Jaringan Irigasi Air Tanah — Data GeoJSON
+
+    <div class="header-title">
+
+      WebGIS Persebaran JIAT
+
     </div>
+
+
+    <div class="header-subtitle">
+
+      Jaringan Irigasi Air Tanah dan Cekungan Air Tanah
+
+    </div>
+
   </div>
 
-  <!-- ================= SIDE PANEL ================= -->
+
+
+  <!-- =====================================================
+       SIDE PANEL
+  ====================================================== -->
+
   <div class="side-panel">
 
-    <h2>Persebaran JIAT</h2>
+
+    <h2>
+      Persebaran JIAT
+    </h2>
+
 
     <div class="description">
-      WebGIS interaktif untuk menampilkan lokasi dan atribut Jaringan
-      Irigasi Air Tanah (JIAT).
+
+      WebGIS interaktif untuk menampilkan
+      lokasi Jaringan Irigasi Air Tanah (JIAT)
+      dan Cekungan Air Tanah (CAT).
+
     </div>
+
+
+    <!-- STATISTIK -->
 
     <div class="stats">
-      <div class="stat">
-        <div class="stat-number" id="totalJIAT">-</div>
-        <div class="stat-label">Total Titik</div>
-      </div>
+
 
       <div class="stat">
-        <div class="stat-number" id="totalKabupaten">-</div>
-        <div class="stat-label">Kabupaten</div>
+
+        <div
+          class="stat-number"
+          id="totalJIAT">
+
+          -
+
+        </div>
+
+
+        <div class="stat-label">
+
+          Total Titik JIAT
+
+        </div>
+
       </div>
+
+
+
+      <div class="stat">
+
+        <div
+          class="stat-number"
+          id="totalKabupaten">
+
+          -
+
+        </div>
+
+
+        <div class="stat-label">
+
+          Kabupaten
+
+        </div>
+
+      </div>
+
     </div>
 
+
+
     <!-- SEARCH -->
+
     <div class="search-box">
+
       <input
         type="text"
         id="searchInput"
-        placeholder="🔍 Cari nama, desa, kecamatan..."
+        placeholder="🔍 Cari JIAT, desa, kecamatan..."
       >
+
     </div>
+
+
 
     <!-- FILTER PROVINSI -->
+
     <div class="filter">
-      <label>Provinsi</label>
+
+      <label>
+        Provinsi
+      </label>
+
+
       <select id="provinsiFilter">
-        <option value="">Semua Provinsi</option>
+
+        <option value="">
+          Semua Provinsi
+        </option>
+
       </select>
+
     </div>
+
+
 
     <!-- FILTER KABUPATEN -->
+
     <div class="filter">
-      <label>Kabupaten</label>
+
+      <label>
+        Kabupaten
+      </label>
+
+
       <select id="kabupatenFilter">
-        <option value="">Semua Kabupaten</option>
+
+        <option value="">
+          Semua Kabupaten
+        </option>
+
       </select>
+
     </div>
+
+
 
     <!-- FILTER JENIS -->
+
     <div class="filter">
-      <label>Jenis Infrastruktur</label>
+
+      <label>
+        Jenis Infrastruktur
+      </label>
+
+
       <select id="jenisFilter">
-        <option value="">Semua Jenis</option>
+
+        <option value="">
+          Semua Jenis
+        </option>
+
       </select>
+
     </div>
+
+
+
+    <!-- BUTTON -->
 
     <div class="button-row">
-      <button class="btn-primary" onclick="applyFilter()">
+
+      <button
+        class="btn-primary"
+        onclick="applyFilter()">
+
         Terapkan Filter
+
       </button>
 
-      <button class="btn-secondary" onclick="resetFilter()">
+
+      <button
+        class="btn-secondary"
+        onclick="resetFilter()">
+
         Reset
+
       </button>
+
     </div>
 
-    <div class="loading" id="loading">
-      Memuat data JIAT...
+
+
+    <!-- LOADING -->
+
+    <div
+      class="loading"
+      id="loading">
+
+      Memuat data JIAT dan CAT...
+
     </div>
 
-    <div class="error" id="error">
-      Data GeoJSON tidak dapat dimuat.
-      Pastikan file <b>JIAT.geojson</b> berada satu folder dengan
+
+
+    <!-- ERROR -->
+
+    <div
+      class="error"
+      id="error">
+
+      Data tidak dapat dimuat.
+
+      Pastikan file:
+
+      <b>JIAT.geojson</b>
+
+      dan
+
+      <b>CAT.geojson</b>
+
+      berada di folder yang sama dengan
       <b>index.html</b>.
+
     </div>
+
+
+
+    <!-- LEGEND -->
 
     <div class="legend-box">
-      <h3>Legenda</h3>
+
+      <h3>
+        Legenda
+      </h3>
+
 
       <div class="legend-item">
-        <div class="legend-symbol"></div>
-        <span>Lokasi JIAT</span>
+
+        <div class="legend-point"></div>
+
+        <span>
+          Lokasi JIAT
+        </span>
+
       </div>
+
+
+      <div class="legend-item">
+
+        <div class="legend-cat"></div>
+
+        <span>
+          Cekungan Air Tanah (CAT)
+        </span>
+
+      </div>
+
     </div>
 
   </div>
 
-  <!-- ================= MAP ================= -->
+
+
+  <!-- =====================================================
+       MAP
+  ====================================================== -->
+
   <div id="map"></div>
 
-  <!-- Leaflet JS -->
+
+
+  <!-- =====================================================
+       LEAFLET JS
+  ====================================================== -->
+
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     crossorigin="">
   </script>
 
+
+
   <script>
+
     // =====================================================
     // 1. INISIALISASI PETA
     // =====================================================
 
-    const map = L.map("map", {
-      zoomControl: true
-    }).setView([-2.5, 118], 5);
+    const map =
+      L.map("map")
+       .setView(
+         [-2.5, 118],
+         5
+       );
 
-
-    // =====================================================
-    // 2. BASEMAP
-    // =====================================================
-
-    const osm = L.tileLayer(
-      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      {
-        attribution: "&copy; OpenStreetMap contributors",
-        maxZoom: 19
-      }
-    ).addTo(map);
-
-
-    const satellite = L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      {
-        attribution: "Tiles &copy; Esri",
-        maxZoom: 19
-      }
-    );
 
 
     // =====================================================
-    // 3. LAYER GROUP
+    // 2. BASEMAP OPENSTREETMAP
     // =====================================================
 
-    let jiatLayer = L.layerGroup().addTo(map);
+    const osm =
+      L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
 
-    let geojsonData = null;
-    let allFeatures = [];
+          attribution:
+            "&copy; OpenStreetMap contributors",
+
+          maxZoom: 19
+
+        }
+      )
+      .addTo(map);
+
 
 
     // =====================================================
-    // 4. STYLE TITIK JIAT
+    // 3. BASEMAP SATELLITE
     // =====================================================
 
-    function pointStyle() {
+    const satellite =
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        {
+
+          attribution:
+            "Tiles &copy; Esri",
+
+          maxZoom: 19
+
+        }
+      );
+
+
+
+    // =====================================================
+    // 4. LAYER JIAT
+    // =====================================================
+
+    const jiatLayer =
+      L.layerGroup()
+       .addTo(map);
+
+
+
+    // =====================================================
+    // 5. LAYER CAT
+    // =====================================================
+
+    const catLayer =
+      L.layerGroup()
+       .addTo(map);
+
+
+
+    // =====================================================
+    // 6. VARIABLE DATA
+    // =====================================================
+
+    let geojsonJIAT = null;
+
+    let allJIAT =
+      [];
+
+
+
+    // =====================================================
+    // 7. STYLE JIAT
+    // =====================================================
+
+    function jiatStyle() {
+
       return {
+
         radius: 7,
-        fillColor: "#e53935",
-        color: "#ffffff",
+
+        fillColor:
+          "#e53935",
+
+        color:
+          "#ffffff",
+
         weight: 2,
+
         opacity: 1,
-        fillOpacity: 0.9
+
+        fillOpacity:
+          .9
+
       };
+
     }
 
 
+
     // =====================================================
-    // 5. FORMAT NILAI
+    // 8. STYLE CAT
+    // =====================================================
+
+    function catStyle() {
+
+      return {
+
+        color:
+          "#1565c0",
+
+        weight: 1.5,
+
+        fillColor:
+          "#42a5f5",
+
+        fillOpacity:
+          .25
+
+      };
+
+    }
+
+
+
+    // =====================================================
+    // 9. FORMAT VALUE
     // =====================================================
 
     function formatValue(value) {
@@ -450,443 +1040,1170 @@
       if (
         value === null ||
         value === undefined ||
-        value === "" ||
-        value === false
+        value === ""
       ) {
+
         return "-";
-      }
 
-      if (value === true) {
-        return "Ya";
-      }
-
-      if (typeof value === "number") {
-        return Number.isInteger(value)
-          ? value
-          : value.toFixed(2);
       }
 
       return value;
+
     }
 
 
+
     // =====================================================
-    // 6. POPUP
+    // 10. POPUP JIAT
     // =====================================================
 
-    function createPopup(properties) {
+    function createJIATPopup(properties) {
 
-      const nama = properties["Nama Kegia"] || "Lokasi JIAT";
 
-      const fields = [
-        ["No.", properties["No."]],
-        ["Balai", properties["Balai"]],
-        ["Provinsi", properties["Provinsi"]],
-        ["Kabupaten", properties["Kabupaten"]],
-        ["Kecamatan", properties["Kecamatan"]],
-        ["Desa / Kelurahan", properties["Desa / Kel"]],
-        ["Jenis Infrastruktur", properties["Jenis Infr"]],
-        ["Debit (L/detik)", properties["Debit\n(L/d"]],
-        ["Kedalaman (m)", properties["Kedalaman"]],
-        ["Jaringan P (km)", properties["Jaringan P"]],
-        ["Jumlah Box", properties["Jumlah Box"]],
-        ["Luas Layanan (ha)", properties["Luas Layan"]],
-        ["Luas Tanam (ha)", properties["Luas Tanam"]],
-        ["Peningkatan (ha)", properties["Peningkata"]],
-        ["Jenis Pekerjaan", properties["Jenis Peke"]],
-        ["Tahap Kegiatan", properties["Kegiatan"]],
-        ["Latitude", properties["Latitude"]],
-        ["Longitude", properties["Longitude"]]
-      ];
+      const nama =
+        properties["Nama Kegia"] ||
+        properties["Nama Kegiatan"] ||
+        "Lokasi JIAT";
 
-      let rows = "";
 
-      fields.forEach(function(item) {
+      let html = `
 
-        rows += `
-          <tr>
-            <td>${item[0]}</td>
-            <td>${formatValue(item[1])}</td>
-          </tr>
-        `;
-      });
+        <div class="popup-title">
 
-      return `
-        <div class="popup-title">${nama}</div>
+          ${nama}
+
+        </div>
+
+
+        <div class="popup-subtitle">
+
+          Informasi Jaringan Irigasi Air Tanah
+
+        </div>
+
 
         <table class="popup-table">
-          ${rows}
-        </table>
+
       `;
+
+
+
+      const fields = [
+
+        [
+          "No.",
+          properties["No."]
+        ],
+
+        [
+          "Balai",
+          properties["Balai"]
+        ],
+
+        [
+          "Provinsi",
+          properties["Provinsi"]
+        ],
+
+        [
+          "Kabupaten",
+          properties["Kabupaten"]
+        ],
+
+        [
+          "Kecamatan",
+          properties["Kecamatan"]
+        ],
+
+        [
+          "Desa / Kelurahan",
+          properties["Desa / Kel"]
+        ],
+
+        [
+          "Jenis Infrastruktur",
+          properties["Jenis Infr"]
+        ],
+
+        [
+          "Debit (L/detik)",
+          properties["Debit\n(L/d"]
+        ],
+
+        [
+          "Kedalaman (m)",
+          properties["Kedalaman"]
+        ],
+
+        [
+          "Jaringan P (km)",
+          properties["Jaringan P"]
+        ],
+
+        [
+          "Jumlah Box",
+          properties["Jumlah Box"]
+        ],
+
+        [
+          "Luas Layanan (ha)",
+          properties["Luas Layan"]
+        ],
+
+        [
+          "Luas Tanam (ha)",
+          properties["Luas Tanam"]
+        ],
+
+        [
+          "Peningkatan (ha)",
+          properties["Peningkata"]
+        ],
+
+        [
+          "Jenis Pekerjaan",
+          properties["Jenis Peke"]
+        ],
+
+        [
+          "Kegiatan",
+          properties["Kegiatan"]
+        ],
+
+        [
+          "Latitude",
+          properties["Latitude"]
+        ],
+
+        [
+          "Longitude",
+          properties["Longitude"]
+        ]
+
+      ];
+
+
+
+      fields.forEach(
+        function(field) {
+
+          html += `
+
+            <tr>
+
+              <td>
+                ${field[0]}
+              </td>
+
+              <td>
+                ${formatValue(field[1])}
+              </td>
+
+            </tr>
+
+          `;
+
+        }
+      );
+
+
+
+      html += `
+
+        </table>
+
+      `;
+
+
+      return html;
+
     }
 
 
+
     // =====================================================
-    // 7. MEMBUAT LAYER GEOJSON
+    // 11. DISPLAY JIAT
     // =====================================================
 
-    function displayGeoJSON(data) {
+    function displayJIAT(data) {
+
 
       jiatLayer.clearLayers();
 
-      const filteredLayer = L.geoJSON(data, {
 
-        pointToLayer: function(feature, latlng) {
 
-          return L.circleMarker(
-            latlng,
-            pointStyle()
-          );
-        },
+      const layer =
+        L.geoJSON(
+          data,
+          {
 
-        onEachFeature: function(feature, layer) {
+            pointToLayer:
+              function(
+                feature,
+                latlng
+              ) {
 
-          layer.bindPopup(
-            createPopup(feature.properties)
-          );
+                return L.circleMarker(
+                  latlng,
+                  jiatStyle()
+                );
 
-          layer.on("mouseover", function() {
-            this.setStyle({
-              radius: 10,
-              fillOpacity: 1
-            });
-          });
+              },
 
-          layer.on("mouseout", function() {
-            this.setStyle(pointStyle());
-          });
-        }
-      });
 
-      filteredLayer.addTo(jiatLayer);
+            onEachFeature:
+              function(
+                feature,
+                layer
+              ) {
+
+
+                layer.bindPopup(
+
+                  createJIATPopup(
+                    feature.properties || {}
+                  )
+
+                );
+
+
+                layer.on(
+                  "mouseover",
+                  function() {
+
+                    this.setStyle({
+
+                      radius: 10,
+
+                      fillOpacity: 1
+
+                    });
+
+                  }
+                );
+
+
+                layer.on(
+                  "mouseout",
+                  function() {
+
+                    this.setStyle(
+                      jiatStyle()
+                    );
+
+                  }
+                );
+
+              }
+
+          }
+        );
+
+
+      layer.addTo(
+        jiatLayer
+      );
+
     }
 
 
+
     // =====================================================
-    // 8. LOAD GEOJSON
+    // 12. LOAD JIAT GEOJSON
     // =====================================================
 
-    fetch("JIAT.geojson")
-      .then(function(response) {
+    fetch(
+      "JIAT.geojson"
+    )
 
-        if (!response.ok) {
-          throw new Error("HTTP " + response.status);
+      .then(
+        function(response) {
+
+          if (!response.ok) {
+
+            throw new Error(
+              "JIAT.geojson tidak ditemukan"
+            );
+
+          }
+
+          return response.json();
+
         }
+      )
 
-        return response.json();
-      })
 
-      .then(function(data) {
+      .then(
+        function(data) {
 
-        geojsonData = data;
-        allFeatures = data.features || [];
 
-        document.getElementById("loading").style.display = "none";
+          geojsonJIAT =
+            data;
 
-        document.getElementById("totalJIAT").textContent =
-          allFeatures.length;
 
-        updateStatistics(allFeatures);
+          allJIAT =
+            data.features || [];
 
-        populateFilters(allFeatures);
 
-        displayGeoJSON(data);
+          document
+            .getElementById(
+              "totalJIAT"
+            )
+            .textContent =
+              allJIAT.length;
 
-        if (allFeatures.length > 0) {
 
-          const layer = L.geoJSON(data);
 
-          map.fitBounds(
-            layer.getBounds(),
-            {
-              padding: [30, 30]
+          updateStatistics(
+            allJIAT
+          );
+
+
+          populateFilters(
+            allJIAT
+          );
+
+
+          displayJIAT(
+            data
+          );
+
+
+          // Zoom ke JIAT
+
+          if (
+            allJIAT.length > 0
+          ) {
+
+            const bounds =
+              L.geoJSON(
+                data
+              )
+              .getBounds();
+
+
+            if (
+              bounds.isValid()
+            ) {
+
+              map.fitBounds(
+                bounds,
+                {
+                  padding:
+                    [30,30]
+                }
+              );
+
             }
+
+          }
+
+        }
+      )
+
+
+      .catch(
+        function(error) {
+
+          console.error(
+            error
           );
+
+          document
+            .getElementById(
+              "error"
+            )
+            .style.display =
+              "block";
+
         }
-      })
+      );
 
-      .catch(function(error) {
-
-        console.error(error);
-
-        document.getElementById("loading").style.display = "none";
-
-        document.getElementById("error").style.display = "block";
-      });
 
 
     // =====================================================
-    // 9. STATISTIK
+    // 13. LOAD CAT GEOJSON
     // =====================================================
 
-    function updateStatistics(features) {
+    fetch(
+      "CAT.geojson"
+    )
 
-      const kabupaten = new Set();
+      .then(
+        function(response) {
 
-      features.forEach(function(feature) {
+          if (!response.ok) {
 
-        const p = feature.properties || {};
+            throw new Error(
+              "CAT.geojson tidak ditemukan"
+            );
 
-        if (p["Kabupaten"]) {
-          kabupaten.add(p["Kabupaten"]);
+          }
+
+          return response.json();
+
         }
-      });
+      )
 
-      document.getElementById("totalJIAT").textContent =
-        features.length;
 
-      document.getElementById("totalKabupaten").textContent =
-        kabupaten.size;
+      .then(
+        function(data) {
+
+
+          const catGeoJSON =
+            L.geoJSON(
+              data,
+              {
+
+                style:
+                  function() {
+
+                    return catStyle();
+
+                  },
+
+
+                onEachFeature:
+                  function(
+                    feature,
+                    layer
+                  ) {
+
+
+                    const properties =
+                      feature.properties ||
+                      {};
+
+
+                    let popup = `
+
+                      <div class="popup-title">
+
+                        Cekungan Air Tanah
+
+                      </div>
+
+                    `;
+
+
+
+                    const keys =
+                      Object.keys(
+                        properties
+                      );
+
+
+                    if (
+                      keys.length === 0
+                    ) {
+
+                      popup += `
+
+                        <div class="popup-subtitle">
+
+                          Tidak terdapat atribut.
+
+                        </div>
+
+                      `;
+
+                    }
+
+                    else {
+
+
+                      popup += `
+
+                        <table class="popup-table">
+
+                      `;
+
+
+
+                      keys.forEach(
+                        function(key) {
+
+                          popup += `
+
+                            <tr>
+
+                              <td>
+                                ${key}
+                              </td>
+
+                              <td>
+                                ${formatValue(
+                                  properties[key]
+                                )}
+                              </td>
+
+                            </tr>
+
+                          `;
+
+                        }
+                      );
+
+
+                      popup += `
+
+                        </table>
+
+                      `;
+
+                    }
+
+
+
+                    layer.bindPopup(
+                      popup
+                    );
+
+
+
+                    // Highlight CAT
+
+                    layer.on(
+                      "mouseover",
+                      function() {
+
+                        this.setStyle({
+
+                          weight: 3,
+
+                          fillOpacity:
+                            .45
+
+                        });
+
+                      }
+                    );
+
+
+
+                    layer.on(
+                      "mouseout",
+                      function() {
+
+                        this.setStyle(
+                          catStyle()
+                        );
+
+                      }
+                    );
+
+                  }
+
+              }
+            );
+
+
+          catLayer.clearLayers();
+
+
+          catGeoJSON.addTo(
+            catLayer
+          );
+
+
+
+          console.log(
+            "CAT berhasil dimuat:",
+            data
+          );
+
+        }
+      )
+
+
+      .catch(
+        function(error) {
+
+          console.error(
+            "CAT.geojson:",
+            error
+          );
+
+        }
+      );
+
+
+
+    // =====================================================
+    // 14. UPDATE STATISTICS
+    // =====================================================
+
+    function updateStatistics(
+      features
+    ) {
+
+
+      const kabupaten =
+        new Set();
+
+
+
+      features.forEach(
+        function(feature) {
+
+          const p =
+            feature.properties ||
+            {};
+
+
+          if (
+            p["Kabupaten"]
+          ) {
+
+            kabupaten.add(
+              p["Kabupaten"]
+            );
+
+          }
+
+        }
+      );
+
+
+
+      document
+        .getElementById(
+          "totalJIAT"
+        )
+        .textContent =
+          features.length;
+
+
+
+      document
+        .getElementById(
+          "totalKabupaten"
+        )
+        .textContent =
+          kabupaten.size;
+
     }
 
 
+
     // =====================================================
-    // 10. MEMBUAT FILTER
+    // 15. POPULATE FILTER
     // =====================================================
 
-    function populateFilters(features) {
+    function populateFilters(
+      features
+    ) {
 
-      const provinsiSet = new Set();
-      const kabupatenSet = new Set();
-      const jenisSet = new Set();
 
-      features.forEach(function(feature) {
+      const provinsi =
+        new Set();
 
-        const p = feature.properties || {};
 
-        if (p["Provinsi"])
-          provinsiSet.add(p["Provinsi"]);
+      const kabupaten =
+        new Set();
 
-        if (p["Kabupaten"])
-          kabupatenSet.add(p["Kabupaten"]);
 
-        if (p["Jenis Infr"])
-          jenisSet.add(p["Jenis Infr"]);
-      });
+      const jenis =
+        new Set();
+
+
+
+      features.forEach(
+        function(feature) {
+
+
+          const p =
+            feature.properties ||
+            {};
+
+
+          if (
+            p["Provinsi"]
+          ) {
+
+            provinsi.add(
+              p["Provinsi"]
+            );
+
+          }
+
+
+          if (
+            p["Kabupaten"]
+          ) {
+
+            kabupaten.add(
+              p["Kabupaten"]
+            );
+
+          }
+
+
+          if (
+            p["Jenis Infr"]
+          ) {
+
+            jenis.add(
+              p["Jenis Infr"]
+            );
+
+          }
+
+        }
+      );
+
 
 
       fillSelect(
         "provinsiFilter",
-        [...provinsiSet].sort()
+        [...provinsi].sort()
       );
+
 
       fillSelect(
         "kabupatenFilter",
-        [...kabupatenSet].sort()
+        [...kabupaten].sort()
       );
+
 
       fillSelect(
         "jenisFilter",
-        [...jenisSet].sort()
+        [...jenis].sort()
       );
+
     }
 
-
-    function fillSelect(id, values) {
-
-      const select = document.getElementById(id);
-
-      values.forEach(function(value) {
-
-        const option = document.createElement("option");
-
-        option.value = value;
-        option.textContent = value;
-
-        select.appendChild(option);
-      });
-    }
 
 
     // =====================================================
-    // 11. FILTER DATA
+    // 16. FILL SELECT
+    // =====================================================
+
+    function fillSelect(
+      id,
+      values
+    ) {
+
+
+      const select =
+        document.getElementById(
+          id
+        );
+
+
+      values.forEach(
+        function(value) {
+
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+
+          option.value =
+            value;
+
+
+          option.textContent =
+            value;
+
+
+          select.appendChild(
+            option
+          );
+
+        }
+      );
+
+    }
+
+
+
+    // =====================================================
+    // 17. FILTER JIAT
     // =====================================================
 
     function applyFilter() {
 
-      if (!geojsonData) return;
+
+      if (
+        !geojsonJIAT
+      ) {
+
+        return;
+
+      }
+
+
 
       const search =
         document
-          .getElementById("searchInput")
+          .getElementById(
+            "searchInput"
+          )
           .value
           .toLowerCase()
           .trim();
 
+
+
       const provinsi =
-        document.getElementById("provinsiFilter").value;
+        document
+          .getElementById(
+            "provinsiFilter"
+          )
+          .value;
+
+
 
       const kabupaten =
-        document.getElementById("kabupatenFilter").value;
+        document
+          .getElementById(
+            "kabupatenFilter"
+          )
+          .value;
+
+
 
       const jenis =
-        document.getElementById("jenisFilter").value;
+        document
+          .getElementById(
+            "jenisFilter"
+          )
+          .value;
 
 
-      const filtered = allFeatures.filter(function(feature) {
 
-        const p = feature.properties || {};
-
-        const searchableText = [
-
-          p["Nama Kegia"],
-          p["Balai"],
-          p["Provinsi"],
-          p["Kabupaten"],
-          p["Kecamatan"],
-          p["Desa / Kel"],
-          p["Jenis Infr"]
-
-        ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+      const filtered =
+        allJIAT.filter(
+          function(feature) {
 
 
-        const matchSearch =
-          !search ||
-          searchableText.includes(search);
+            const p =
+              feature.properties ||
+              {};
 
 
-        const matchProvinsi =
-          !provinsi ||
-          p["Provinsi"] === provinsi;
+
+            const searchableText = [
+
+              p["Nama Kegia"],
+
+              p["Nama Kegiatan"],
+
+              p["Balai"],
+
+              p["Provinsi"],
+
+              p["Kabupaten"],
+
+              p["Kecamatan"],
+
+              p["Desa / Kel"],
+
+              p["Jenis Infr"]
+
+            ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
 
 
-        const matchKabupaten =
-          !kabupaten ||
-          p["Kabupaten"] === kabupaten;
+
+            const matchSearch =
+
+              !search ||
+
+              searchableText
+                .includes(
+                  search
+                );
 
 
-        const matchJenis =
-          !jenis ||
-          p["Jenis Infr"] === jenis;
+
+            const matchProvinsi =
+
+              !provinsi ||
+
+              p["Provinsi"] ===
+                provinsi;
 
 
-        return (
-          matchSearch &&
-          matchProvinsi &&
-          matchKabupaten &&
-          matchJenis
-        );
-      });
+
+            const matchKabupaten =
+
+              !kabupaten ||
+
+              p["Kabupaten"] ===
+                kabupaten;
 
 
-      displayGeoJSON({
-        type: "FeatureCollection",
-        features: filtered
-      });
+
+            const matchJenis =
+
+              !jenis ||
+
+              p["Jenis Infr"] ===
+                jenis;
 
 
-      updateStatistics(filtered);
 
+            return (
 
-      // Zoom ke hasil filter
-      if (filtered.length > 0) {
+              matchSearch &&
 
-        const layer = L.geoJSON({
-          type: "FeatureCollection",
-          features: filtered
-        });
+              matchProvinsi &&
 
-        map.fitBounds(
-          layer.getBounds(),
-          {
-            padding: [40, 40]
+              matchKabupaten &&
+
+              matchJenis
+
+            );
+
           }
         );
 
+
+
+      const filteredData = {
+
+        type:
+          "FeatureCollection",
+
+        features:
+          filtered
+
+      };
+
+
+
+      displayJIAT(
+        filteredData
+      );
+
+
+      updateStatistics(
+        filtered
+      );
+
+
+
+      // Zoom hasil filter
+
+      if (
+        filtered.length > 0
+      ) {
+
+
+        const bounds =
+          L.geoJSON(
+            filteredData
+          )
+          .getBounds();
+
+
+        if (
+          bounds.isValid()
+        ) {
+
+          map.fitBounds(
+            bounds,
+            {
+              padding:
+                [40,40]
+            }
+          );
+
+        }
+
       }
+
     }
 
 
+
     // =====================================================
-    // 12. RESET FILTER
+    // 18. RESET FILTER
     // =====================================================
 
     function resetFilter() {
 
-      document.getElementById("searchInput").value = "";
 
-      document.getElementById("provinsiFilter").value = "";
+      document
+        .getElementById(
+          "searchInput"
+        )
+        .value = "";
 
-      document.getElementById("kabupatenFilter").value = "";
-
-      document.getElementById("jenisFilter").value = "";
 
 
-      if (geojsonData) {
+      document
+        .getElementById(
+          "provinsiFilter"
+        )
+        .value = "";
 
-        displayGeoJSON(geojsonData);
 
-        updateStatistics(allFeatures);
 
-        if (allFeatures.length > 0) {
+      document
+        .getElementById(
+          "kabupatenFilter"
+        )
+        .value = "";
 
-          const layer = L.geoJSON(geojsonData);
+
+
+      document
+        .getElementById(
+          "jenisFilter"
+        )
+        .value = "";
+
+
+
+      if (
+        geojsonJIAT
+      ) {
+
+
+        displayJIAT(
+          geojsonJIAT
+        );
+
+
+        updateStatistics(
+          allJIAT
+        );
+
+
+
+        const bounds =
+          L.geoJSON(
+            geojsonJIAT
+          )
+          .getBounds();
+
+
+        if (
+          bounds.isValid()
+        ) {
 
           map.fitBounds(
-            layer.getBounds(),
+            bounds,
             {
-              padding: [30, 30]
+              padding:
+                [30,30]
             }
           );
+
         }
+
       }
+
     }
 
 
+
     // =====================================================
-    // 13. ENTER UNTUK SEARCH
+    // 19. ENTER UNTUK SEARCH
     // =====================================================
 
     document
-      .getElementById("searchInput")
-      .addEventListener("keypress", function(event) {
+      .getElementById(
+        "searchInput"
+      )
+      .addEventListener(
+        "keypress",
+        function(event) {
 
-        if (event.key === "Enter") {
-          applyFilter();
+
+          if (
+            event.key ===
+            "Enter"
+          ) {
+
+            applyFilter();
+
+          }
+
         }
-      });
+      );
+
 
 
     // =====================================================
-    // 14. KONTROL BASEMAP
+    // 20. LAYER CONTROL
     // =====================================================
 
     const baseMaps = {
 
-      "OpenStreetMap": osm,
+      "OpenStreetMap":
+        osm,
 
-      "Satellite": satellite
+      "Satellite":
+        satellite
 
     };
+
 
 
     const overlays = {
 
-      "Titik JIAT": jiatLayer
+      "🔴 Titik JIAT":
+        jiatLayer,
+
+      "🔵 Cekungan Air Tanah (CAT)":
+        catLayer
 
     };
 
 
+
     L.control
-      .layers(baseMaps, overlays, {
-        collapsed: false
+      .layers(
+        baseMaps,
+        overlays,
+        {
+          collapsed:
+            false
+        }
+      )
+      .addTo(map);
+
+
+
+    // =====================================================
+    // 21. SCALE BAR
+    // =====================================================
+
+    L.control
+      .scale({
+
+        imperial:
+          false,
+
+        metric:
+          true
+
       })
       .addTo(map);
 
 
+
     // =====================================================
-    // 15. SCALE
+    // 22. SELESAI
     // =====================================================
 
-    L.control.scale({
-      imperial: false,
-      metric: true
-    }).addTo(map);
+    document
+      .getElementById(
+        "loading"
+      )
+      .style.display =
+        "none";
 
   </script>
 
 </body>
+
 </html>
