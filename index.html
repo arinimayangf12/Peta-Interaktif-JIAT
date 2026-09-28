@@ -1,313 +1,892 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>WebGIS Persebaran JIAT</title>
 
-  <!-- Leaflet CSS -->
+  <!-- Leaflet -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIINfQ3FqD1Lx8c7e2b4J0j9X6v7X3M6xQ="
     crossorigin=""
-  />
+  >
 
   <style>
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; font-family: Arial, sans-serif; }
-
-    .header {
-      height: 64px;
-      background: #0b5d4b;
-      color: white;
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,.2);
-      position: relative;
-      z-index: 1000;
+    * {
+      box-sizing: border-box;
     }
 
-    .header h1 {
+    html, body {
       margin: 0;
-      font-size: 21px;
-      font-weight: 700;
-    }
-
-    .header span {
-      margin-left: 12px;
-      font-size: 13px;
-      opacity: .85;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f8;
     }
 
     #map {
-      height: calc(100vh - 64px);
-      width: 100%;
+      position: absolute;
+      top: 64px;
+      bottom: 0;
+      left: 0;
+      right: 0;
     }
 
-    .info-panel {
-      position: absolute;
+    /* ================= HEADER ================= */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+      background: #087f5b;
+      color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,.22);
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      margin-left: 14px;
+      opacity: .9;
+    }
+
+    /* ================= SIDE PANEL ================= */
+    .side-panel {
+      position: fixed;
+      z-index: 1500;
       top: 82px;
       left: 15px;
-      z-index: 900;
-      width: 285px;
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.18);
-      line-height: 1.45;
+      width: 330px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+      background: rgba(255,255,255,.97);
+      border-radius: 12px;
+      box-shadow: 0 3px 18px rgba(0,0,0,.20);
+      padding: 16px;
     }
 
-    .info-panel h2 {
-      margin: 0 0 8px;
-      font-size: 16px;
-      color: #0b5d4b;
+    .side-panel h2 {
+      margin: 0 0 4px;
+      color: #087f5b;
+      font-size: 18px;
     }
 
-    .info-panel p {
-      margin: 5px 0;
-      font-size: 13px;
+    .side-panel .description {
+      color: #666;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 14px;
     }
 
-    .legend {
-      background: white;
-      padding: 10px 12px;
-      line-height: 22px;
+    /* ================= STATISTICS ================= */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      background: #f0f7f4;
+      border-radius: 8px;
+      padding: 10px;
+      border-left: 4px solid #087f5b;
+    }
+
+    .stat-number {
+      font-size: 20px;
+      font-weight: bold;
+      color: #087f5b;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    /* ================= SEARCH ================= */
+    .search-box {
+      margin-bottom: 12px;
+    }
+
+    .search-box input,
+    .filter select {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #ccc;
       border-radius: 7px;
-      box-shadow: 0 1px 8px rgba(0,0,0,.18);
+      font-size: 13px;
+      outline: none;
+      background: white;
+    }
+
+    .search-box input:focus,
+    .filter select:focus {
+      border-color: #087f5b;
+    }
+
+    .filter {
+      margin-bottom: 9px;
+    }
+
+    .filter label {
+      display: block;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #444;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 7px;
+      margin: 12px 0;
+    }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      padding: 9px 11px;
+      cursor: pointer;
       font-size: 12px;
     }
 
-    .legend i {
-      width: 16px;
-      height: 16px;
-      float: left;
-      margin-right: 7px;
-      opacity: .8;
-      border: 1px solid #555;
+    .btn-primary {
+      background: #087f5b;
+      color: white;
     }
 
-    .legend .point {
+    .btn-secondary {
+      background: #e9ecef;
+      color: #333;
+    }
+
+    button:hover {
+      opacity: .88;
+    }
+
+    /* ================= LEGEND ================= */
+    .legend-box {
+      border-top: 1px solid #ddd;
+      padding-top: 12px;
+      margin-top: 8px;
+    }
+
+    .legend-box h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      margin: 6px 0;
+    }
+
+    .legend-symbol {
+      width: 15px;
+      height: 15px;
       border-radius: 50%;
-      width: 13px;
-      height: 13px;
-      margin-top: 4px;
+      background: #e53935;
+      border: 2px solid white;
+      box-shadow: 0 0 0 1px #777;
     }
 
-    .leaflet-control-layers {
-      border-radius: 8px !important;
+    /* ================= LOADING ================= */
+    .loading {
+      font-size: 12px;
+      color: #666;
+      padding: 7px 0;
     }
 
-    @media (max-width: 600px) {
-      .header h1 { font-size: 16px; }
-      .header span { display: none; }
-      .info-panel { width: 235px; }
+    .error {
+      color: #c92a2a;
+      background: #fff5f5;
+      border-radius: 7px;
+      padding: 9px;
+      font-size: 12px;
+      display: none;
+    }
+
+    /* ================= POPUP ================= */
+    .popup-title {
+      color: #087f5b;
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .popup-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 12px;
+    }
+
+    .popup-table td {
+      padding: 4px 5px;
+      border-bottom: 1px solid #eee;
+      vertical-align: top;
+    }
+
+    .popup-table td:first-child {
+      font-weight: bold;
+      color: #555;
+      width: 42%;
+    }
+
+    /* ================= MOBILE ================= */
+    @media (max-width: 700px) {
+      .header {
+        height: 55px;
+        padding: 0 14px;
+      }
+
+      .header-title {
+        font-size: 16px;
+      }
+
+      .header-subtitle {
+        display: none;
+      }
+
+      #map {
+        top: 55px;
+      }
+
+      .side-panel {
+        top: 68px;
+        left: 10px;
+        width: 280px;
+        max-height: 65vh;
+      }
     }
   </style>
 </head>
 
 <body>
+
+  <!-- ================= HEADER ================= -->
   <div class="header">
-    <h1>WebGIS Persebaran JIAT</h1>
-    <span>Direktorat Air Tanah dan Air Baku</span>
+    <div class="header-title">WebGIS Persebaran JIAT</div>
+    <div class="header-subtitle">
+      Jaringan Irigasi Air Tanah — Data GeoJSON
+    </div>
   </div>
 
-  <div class="info-panel">
-    <h2>Informasi WebGIS</h2>
-    <p><b>JIAT</b> — Jaringan Irigasi Air Tanah</p>
-    <p>WebGIS ini merupakan contoh sederhana untuk menampilkan persebaran titik JIAT dan data pendukung seperti CAT serta batas administrasi.</p>
-    <p><b>Petunjuk:</b> klik titik JIAT untuk melihat informasi.</p>
+  <!-- ================= SIDE PANEL ================= -->
+  <div class="side-panel">
+
+    <h2>Persebaran JIAT</h2>
+
+    <div class="description">
+      WebGIS interaktif untuk menampilkan lokasi dan atribut Jaringan
+      Irigasi Air Tanah (JIAT).
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-number" id="totalJIAT">-</div>
+        <div class="stat-label">Total Titik</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-number" id="totalKabupaten">-</div>
+        <div class="stat-label">Kabupaten</div>
+      </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="search-box">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="🔍 Cari nama, desa, kecamatan..."
+      >
+    </div>
+
+    <!-- FILTER PROVINSI -->
+    <div class="filter">
+      <label>Provinsi</label>
+      <select id="provinsiFilter">
+        <option value="">Semua Provinsi</option>
+      </select>
+    </div>
+
+    <!-- FILTER KABUPATEN -->
+    <div class="filter">
+      <label>Kabupaten</label>
+      <select id="kabupatenFilter">
+        <option value="">Semua Kabupaten</option>
+      </select>
+    </div>
+
+    <!-- FILTER JENIS -->
+    <div class="filter">
+      <label>Jenis Infrastruktur</label>
+      <select id="jenisFilter">
+        <option value="">Semua Jenis</option>
+      </select>
+    </div>
+
+    <div class="button-row">
+      <button class="btn-primary" onclick="applyFilter()">
+        Terapkan Filter
+      </button>
+
+      <button class="btn-secondary" onclick="resetFilter()">
+        Reset
+      </button>
+    </div>
+
+    <div class="loading" id="loading">
+      Memuat data JIAT...
+    </div>
+
+    <div class="error" id="error">
+      Data GeoJSON tidak dapat dimuat.
+      Pastikan file <b>JIAT.geojson</b> berada satu folder dengan
+      <b>index.html</b>.
+    </div>
+
+    <div class="legend-box">
+      <h3>Legenda</h3>
+
+      <div class="legend-item">
+        <div class="legend-symbol"></div>
+        <span>Lokasi JIAT</span>
+      </div>
+    </div>
+
   </div>
 
+  <!-- ================= MAP ================= -->
   <div id="map"></div>
 
   <!-- Leaflet JS -->
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin="">
   </script>
 
   <script>
-    // ==========================
+    // =====================================================
     // 1. INISIALISASI PETA
-    // ==========================
-    const map = L.map('map').setView([-2.5, 118], 5);
+    // =====================================================
 
-    // Basemap OpenStreetMap
+    const map = L.map("map", {
+      zoomControl: true
+    }).setView([-2.5, 118], 5);
+
+
+    // =====================================================
+    // 2. BASEMAP
+    // =====================================================
+
     const osm = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       {
-        attribution: '&copy; OpenStreetMap contributors'
+        attribution: "&copy; OpenStreetMap contributors",
+        maxZoom: 19
       }
     ).addTo(map);
 
-    // Basemap Satellite
+
     const satellite = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       {
-        attribution: 'Tiles &copy; Esri'
+        attribution: "Tiles &copy; Esri",
+        maxZoom: 19
       }
     );
 
-    // ==========================
-    // 2. LAYER JIAT
-    // ==========================
-    const jiatLayer = L.layerGroup();
 
-    const dataJIAT = [
-      {
-        nama: "JIAT Contoh 01",
-        provinsi: "Nusa Tenggara Timur",
-        kabupaten: "Kabupaten Kupang",
-        debit: "10 L/detik",
-        lat: -10.170,
-        lng: 123.607
-      },
-      {
-        nama: "JIAT Contoh 02",
-        provinsi: "Jawa Tengah",
-        kabupaten: "Kabupaten Kebumen",
-        debit: "3 L/detik",
-        lat: -7.675,
-        lng: 109.650
-      },
-      {
-        nama: "JIAT Contoh 03",
-        provinsi: "Jawa Timur",
-        kabupaten: "Kabupaten Madiun",
-        debit: "5 L/detik",
-        lat: -7.630,
-        lng: 111.530
-      },
-      {
-        nama: "JIAT Contoh 04",
-        provinsi: "Nusa Tenggara Barat",
-        kabupaten: "Kabupaten Lombok Tengah",
-        debit: "8 L/detik",
-        lat: -8.700,
-        lng: 116.300
-      }
-    ];
+    // =====================================================
+    // 3. LAYER GROUP
+    // =====================================================
 
-    dataJIAT.forEach(function(item) {
-      const marker = L.circleMarker([item.lat, item.lng], {
-        radius: 8,
-        fillColor: '#e53935',
-        color: '#ffffff',
+    let jiatLayer = L.layerGroup().addTo(map);
+
+    let geojsonData = null;
+    let allFeatures = [];
+
+
+    // =====================================================
+    // 4. STYLE TITIK JIAT
+    // =====================================================
+
+    function pointStyle() {
+      return {
+        radius: 7,
+        fillColor: "#e53935",
+        color: "#ffffff",
         weight: 2,
+        opacity: 1,
         fillOpacity: 0.9
+      };
+    }
+
+
+    // =====================================================
+    // 5. FORMAT NILAI
+    // =====================================================
+
+    function formatValue(value) {
+
+      if (
+        value === null ||
+        value === undefined ||
+        value === "" ||
+        value === false
+      ) {
+        return "-";
+      }
+
+      if (value === true) {
+        return "Ya";
+      }
+
+      if (typeof value === "number") {
+        return Number.isInteger(value)
+          ? value
+          : value.toFixed(2);
+      }
+
+      return value;
+    }
+
+
+    // =====================================================
+    // 6. POPUP
+    // =====================================================
+
+    function createPopup(properties) {
+
+      const nama = properties["Nama Kegia"] || "Lokasi JIAT";
+
+      const fields = [
+        ["No.", properties["No."]],
+        ["Balai", properties["Balai"]],
+        ["Provinsi", properties["Provinsi"]],
+        ["Kabupaten", properties["Kabupaten"]],
+        ["Kecamatan", properties["Kecamatan"]],
+        ["Desa / Kelurahan", properties["Desa / Kel"]],
+        ["Jenis Infrastruktur", properties["Jenis Infr"]],
+        ["Debit (L/detik)", properties["Debit\n(L/d"]],
+        ["Kedalaman (m)", properties["Kedalaman"]],
+        ["Jaringan P (km)", properties["Jaringan P"]],
+        ["Jumlah Box", properties["Jumlah Box"]],
+        ["Luas Layanan (ha)", properties["Luas Layan"]],
+        ["Luas Tanam (ha)", properties["Luas Tanam"]],
+        ["Peningkatan (ha)", properties["Peningkata"]],
+        ["Jenis Pekerjaan", properties["Jenis Peke"]],
+        ["Tahap Kegiatan", properties["Kegiatan"]],
+        ["Latitude", properties["Latitude"]],
+        ["Longitude", properties["Longitude"]]
+      ];
+
+      let rows = "";
+
+      fields.forEach(function(item) {
+
+        rows += `
+          <tr>
+            <td>${item[0]}</td>
+            <td>${formatValue(item[1])}</td>
+          </tr>
+        `;
       });
 
-      marker.bindPopup(`
-        <div style="min-width:190px">
-          <h3 style="margin:0 0 8px;color:#0b5d4b">${item.nama}</h3>
-          <b>Provinsi:</b> ${item.provinsi}<br>
-          <b>Kabupaten:</b> ${item.kabupaten}<br>
-          <b>Debit:</b> ${item.debit}<br>
-          <b>Koordinat:</b> ${item.lat}, ${item.lng}
-        </div>
-      `);
+      return `
+        <div class="popup-title">${nama}</div>
 
-      marker.addTo(jiatLayer);
-    });
+        <table class="popup-table">
+          ${rows}
+        </table>
+      `;
+    }
 
-    jiatLayer.addTo(map);
 
-    // ==========================
-    // 3. CONTOH LAYER CAT
-    // ==========================
-    const catLayer = L.layerGroup();
+    // =====================================================
+    // 7. MEMBUAT LAYER GEOJSON
+    // =====================================================
 
-    // Contoh polygon CAT.
-    // Data ini hanya ilustrasi dan bukan batas CAT resmi.
-    const cat01 = L.polygon([
-      [-7.45, 109.40],
-      [-7.45, 109.85],
-      [-7.80, 109.85],
-      [-7.80, 109.40]
-    ], {
-      color: '#1565c0',
-      weight: 2,
-      fillColor: '#42a5f5',
-      fillOpacity: 0.25
-    });
+    function displayGeoJSON(data) {
 
-    cat01.bindPopup(`
-      <b>CAT Contoh Kebumen</b><br>
-      <small>Polygon ilustrasi untuk contoh WebGIS.</small>
-    `);
+      jiatLayer.clearLayers();
 
-    cat01.addTo(catLayer);
+      const filteredLayer = L.geoJSON(data, {
 
-    // ==========================
-    // 4. CONTOH BATAS KABUPATEN
-    // ==========================
-    const batasKabupaten = L.layerGroup();
+        pointToLayer: function(feature, latlng) {
 
-    const batasContoh = L.polygon([
-      [-7.55, 109.55],
-      [-7.55, 109.75],
-      [-7.75, 109.75],
-      [-7.75, 109.55]
-    ], {
-      color: '#8e24aa',
-      weight: 2,
-      fillColor: '#ce93d8',
-      fillOpacity: 0.15
-    });
+          return L.circleMarker(
+            latlng,
+            pointStyle()
+          );
+        },
 
-    batasContoh.bindPopup(`
-      <b>Kabupaten Contoh</b><br>
-      Batas administrasi ilustrasi.
-    `);
+        onEachFeature: function(feature, layer) {
 
-    batasContoh.addTo(batasKabupaten);
+          layer.bindPopup(
+            createPopup(feature.properties)
+          );
 
-    // ==========================
-    // 5. KONTROL LAYER
-    // ==========================
+          layer.on("mouseover", function() {
+            this.setStyle({
+              radius: 10,
+              fillOpacity: 1
+            });
+          });
+
+          layer.on("mouseout", function() {
+            this.setStyle(pointStyle());
+          });
+        }
+      });
+
+      filteredLayer.addTo(jiatLayer);
+    }
+
+
+    // =====================================================
+    // 8. LOAD GEOJSON
+    // =====================================================
+
+    fetch("JIAT.geojson")
+      .then(function(response) {
+
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+
+        return response.json();
+      })
+
+      .then(function(data) {
+
+        geojsonData = data;
+        allFeatures = data.features || [];
+
+        document.getElementById("loading").style.display = "none";
+
+        document.getElementById("totalJIAT").textContent =
+          allFeatures.length;
+
+        updateStatistics(allFeatures);
+
+        populateFilters(allFeatures);
+
+        displayGeoJSON(data);
+
+        if (allFeatures.length > 0) {
+
+          const layer = L.geoJSON(data);
+
+          map.fitBounds(
+            layer.getBounds(),
+            {
+              padding: [30, 30]
+            }
+          );
+        }
+      })
+
+      .catch(function(error) {
+
+        console.error(error);
+
+        document.getElementById("loading").style.display = "none";
+
+        document.getElementById("error").style.display = "block";
+      });
+
+
+    // =====================================================
+    // 9. STATISTIK
+    // =====================================================
+
+    function updateStatistics(features) {
+
+      const kabupaten = new Set();
+
+      features.forEach(function(feature) {
+
+        const p = feature.properties || {};
+
+        if (p["Kabupaten"]) {
+          kabupaten.add(p["Kabupaten"]);
+        }
+      });
+
+      document.getElementById("totalJIAT").textContent =
+        features.length;
+
+      document.getElementById("totalKabupaten").textContent =
+        kabupaten.size;
+    }
+
+
+    // =====================================================
+    // 10. MEMBUAT FILTER
+    // =====================================================
+
+    function populateFilters(features) {
+
+      const provinsiSet = new Set();
+      const kabupatenSet = new Set();
+      const jenisSet = new Set();
+
+      features.forEach(function(feature) {
+
+        const p = feature.properties || {};
+
+        if (p["Provinsi"])
+          provinsiSet.add(p["Provinsi"]);
+
+        if (p["Kabupaten"])
+          kabupatenSet.add(p["Kabupaten"]);
+
+        if (p["Jenis Infr"])
+          jenisSet.add(p["Jenis Infr"]);
+      });
+
+
+      fillSelect(
+        "provinsiFilter",
+        [...provinsiSet].sort()
+      );
+
+      fillSelect(
+        "kabupatenFilter",
+        [...kabupatenSet].sort()
+      );
+
+      fillSelect(
+        "jenisFilter",
+        [...jenisSet].sort()
+      );
+    }
+
+
+    function fillSelect(id, values) {
+
+      const select = document.getElementById(id);
+
+      values.forEach(function(value) {
+
+        const option = document.createElement("option");
+
+        option.value = value;
+        option.textContent = value;
+
+        select.appendChild(option);
+      });
+    }
+
+
+    // =====================================================
+    // 11. FILTER DATA
+    // =====================================================
+
+    function applyFilter() {
+
+      if (!geojsonData) return;
+
+      const search =
+        document
+          .getElementById("searchInput")
+          .value
+          .toLowerCase()
+          .trim();
+
+      const provinsi =
+        document.getElementById("provinsiFilter").value;
+
+      const kabupaten =
+        document.getElementById("kabupatenFilter").value;
+
+      const jenis =
+        document.getElementById("jenisFilter").value;
+
+
+      const filtered = allFeatures.filter(function(feature) {
+
+        const p = feature.properties || {};
+
+        const searchableText = [
+
+          p["Nama Kegia"],
+          p["Balai"],
+          p["Provinsi"],
+          p["Kabupaten"],
+          p["Kecamatan"],
+          p["Desa / Kel"],
+          p["Jenis Infr"]
+
+        ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+
+        const matchSearch =
+          !search ||
+          searchableText.includes(search);
+
+
+        const matchProvinsi =
+          !provinsi ||
+          p["Provinsi"] === provinsi;
+
+
+        const matchKabupaten =
+          !kabupaten ||
+          p["Kabupaten"] === kabupaten;
+
+
+        const matchJenis =
+          !jenis ||
+          p["Jenis Infr"] === jenis;
+
+
+        return (
+          matchSearch &&
+          matchProvinsi &&
+          matchKabupaten &&
+          matchJenis
+        );
+      });
+
+
+      displayGeoJSON({
+        type: "FeatureCollection",
+        features: filtered
+      });
+
+
+      updateStatistics(filtered);
+
+
+      // Zoom ke hasil filter
+      if (filtered.length > 0) {
+
+        const layer = L.geoJSON({
+          type: "FeatureCollection",
+          features: filtered
+        });
+
+        map.fitBounds(
+          layer.getBounds(),
+          {
+            padding: [40, 40]
+          }
+        );
+
+      }
+    }
+
+
+    // =====================================================
+    // 12. RESET FILTER
+    // =====================================================
+
+    function resetFilter() {
+
+      document.getElementById("searchInput").value = "";
+
+      document.getElementById("provinsiFilter").value = "";
+
+      document.getElementById("kabupatenFilter").value = "";
+
+      document.getElementById("jenisFilter").value = "";
+
+
+      if (geojsonData) {
+
+        displayGeoJSON(geojsonData);
+
+        updateStatistics(allFeatures);
+
+        if (allFeatures.length > 0) {
+
+          const layer = L.geoJSON(geojsonData);
+
+          map.fitBounds(
+            layer.getBounds(),
+            {
+              padding: [30, 30]
+            }
+          );
+        }
+      }
+    }
+
+
+    // =====================================================
+    // 13. ENTER UNTUK SEARCH
+    // =====================================================
+
+    document
+      .getElementById("searchInput")
+      .addEventListener("keypress", function(event) {
+
+        if (event.key === "Enter") {
+          applyFilter();
+        }
+      });
+
+
+    // =====================================================
+    // 14. KONTROL BASEMAP
+    // =====================================================
+
     const baseMaps = {
+
       "OpenStreetMap": osm,
+
       "Satellite": satellite
+
     };
 
-    const overlayMaps = {
-      "Titik JIAT": jiatLayer,
-      "CAT": catLayer,
-      "Batas Kabupaten": batasKabupaten
+
+    const overlays = {
+
+      "Titik JIAT": jiatLayer
+
     };
 
-    L.control.layers(baseMaps, overlayMaps, {
-      collapsed: false
-    }).addTo(map);
 
-    // ==========================
-    // 6. LEGENDA
-    // ==========================
-    const legend = L.control({ position: 'bottomright' });
+    L.control
+      .layers(baseMaps, overlays, {
+        collapsed: false
+      })
+      .addTo(map);
 
-    legend.onAdd = function() {
-      const div = L.DomUtil.create('div', 'legend');
 
-      div.innerHTML += '<b>Legenda</b><br>';
-      div.innerHTML += '<i class="point" style="background:#e53935"></i> Titik JIAT<br>';
-      div.innerHTML += '<i style="background:#42a5f5"></i> CAT<br>';
-      div.innerHTML += '<i style="background:#ce93d8"></i> Batas Kabupaten';
+    // =====================================================
+    // 15. SCALE
+    // =====================================================
 
-      return div;
-    };
-
-    legend.addTo(map);
-
-    // ==========================
-    // 7. SKALA
-    // ==========================
     L.control.scale({
       imperial: false,
       metric: true
     }).addTo(map);
+
   </script>
+
 </body>
 </html>
